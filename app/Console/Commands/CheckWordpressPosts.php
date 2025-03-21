@@ -29,9 +29,13 @@ class CheckWordpressPosts extends Command
     {
         $this->info('Checking WordPress websites for new posts...');
 
+        Storage::append('wordpress-check.log', '[' . now() . '] Check started');
+
         foreach ($this->websites as $siteName => $endpoint) {
             $this->checkSite($siteName, $endpoint);
         }
+
+        Storage::append('wordpress-check.log', '[' . now() . '] Check completed');
 
         $this->info('Done checking websites.');
     }
@@ -93,6 +97,7 @@ class CheckWordpressPosts extends Command
     protected function notifyNewPosts($siteName, $newPosts)
     {
         $this->info('Found '.count($newPosts)." new post(s) for {$siteName}!");
+        Storage::append('wordpress-check.log', '[' . now() . '] Found ' . count($newPosts) . ' new post(s) for ' . $siteName);
 
         foreach ($newPosts as $post) {
             $this->info('New post: '.$post['title']['rendered']);
