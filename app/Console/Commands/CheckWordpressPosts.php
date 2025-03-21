@@ -45,49 +45,62 @@ class CheckWordpressPosts extends Command
         $this->info("Checking {$siteName}...");
 
         try {
-            // Get last checked post ID from storage
-            $lastPostIdFile = "last_post_{$siteName}.txt";
-            $lastPostId = Storage::exists($lastPostIdFile)
-                ? (int) Storage::get($lastPostIdFile)
-                : 0;
+            $fakePost = [
+                'id' => 99999,
+                'title' => ['rendered' => 'Test Post Title'],
+                'link' => 'https://example.com/test-post',
+                'date' => date('Y-m-d H:i:s'),
+                'excerpt' => ['rendered' => 'This is a test post to verify email notifications.']
+            ];
 
-            // Fetch latest posts (limit to 5 to minimize data usage)
-            $response = Http::get($endpoint, [
-                'per_page' => 5,
-                'orderby' => 'date',
-                'order' => 'desc',
-            ]);
+            $this->notifyNewPosts($siteName, [$fakePost]);
 
-            if ($response->successful()) {
-                $posts = $response->json();
+            // Comment out or remove the rest of the function for testing
+            return;
 
-                if (empty($posts)) {
-                    $this->info("No posts found for {$siteName}");
+            // // Get last checked post ID from storage
+            // $lastPostIdFile = "last_post_{$siteName}.txt";
+            // $lastPostId = Storage::exists($lastPostIdFile)
+            //     ? (int) Storage::get($lastPostIdFile)
+            //     : 0;
 
-                    return;
-                }
+            // // Fetch latest posts (limit to 5 to minimize data usage)
+            // $response = Http::get($endpoint, [
+            //     'per_page' => 5,
+            //     'orderby' => 'date',
+            //     'order' => 'desc',
+            // ]);
 
-                $latestPost = $posts[0];
-                $latestPostId = $latestPost['id'];
+            // if ($response->successful()) {
+            //     $posts = $response->json();
 
-                if ($latestPostId > $lastPostId) {
-                    // We found a new post!
-                    $newPosts = array_filter($posts, function ($post) use ($lastPostId) {
-                        return $post['id'] > $lastPostId;
-                    });
+            //     if (empty($posts)) {
+            //         $this->info("No posts found for {$siteName}");
 
-                    $this->notifyNewPosts($siteName, $newPosts);
+            //         return;
+            //     }
 
-                    // Update the last post ID
-                    Storage::put($lastPostIdFile, $latestPostId);
-                    $this->info("Updated last post ID for {$siteName} to {$latestPostId}");
-                } else {
-                    $this->info("No new posts for {$siteName}");
-                }
-            } else {
-                $this->error("Failed to fetch posts from {$siteName}: ".$response->status());
-                Log::error("WordPress API error for {$siteName}: ".$response->body());
-            }
+            //     $latestPost = $posts[0];
+            //     $latestPostId = $latestPost['id'];
+
+            //     if ($latestPostId > $lastPostId) {
+            //         // We found a new post!
+            //         $newPosts = array_filter($posts, function ($post) use ($lastPostId) {
+            //             return $post['id'] > $lastPostId;
+            //         });
+
+            //         $this->notifyNewPosts($siteName, $newPosts);
+
+            //         // Update the last post ID
+            //         Storage::put($lastPostIdFile, $latestPostId);
+            //         $this->info("Updated last post ID for {$siteName} to {$latestPostId}");
+            //     } else {
+            //         $this->info("No new posts for {$siteName}");
+            //     }
+            // } else {
+            //     $this->error("Failed to fetch posts from {$siteName}: ".$response->status());
+            //     Log::error("WordPress API error for {$siteName}: ".$response->body());
+            // }
         } catch (\Exception $e) {
             $this->error("Error checking {$siteName}: ".$e->getMessage());
             Log::error("Error checking WordPress site {$siteName}: ".$e->getMessage());
