@@ -57,50 +57,49 @@ class CheckWordpressPosts extends Command
 
             // Comment out or remove the rest of the function for testing
             return;
+            // Get last checked post ID from storage
+            $lastPostIdFile = "last_post_{$siteName}.txt";
+            $lastPostId = Storage::exists($lastPostIdFile)
+                ? (int) Storage::get($lastPostIdFile)
+                : 0;
 
-            // // Get last checked post ID from storage
-            // $lastPostIdFile = "last_post_{$siteName}.txt";
-            // $lastPostId = Storage::exists($lastPostIdFile)
-            //     ? (int) Storage::get($lastPostIdFile)
-            //     : 0;
+            // Fetch latest posts (limit to 5 to minimize data usage)
+            $response = Http::get($endpoint, [
+                'per_page' => 5,
+                'orderby' => 'date',
+                'order' => 'desc',
+            ]);
 
-            // // Fetch latest posts (limit to 5 to minimize data usage)
-            // $response = Http::get($endpoint, [
-            //     'per_page' => 5,
-            //     'orderby' => 'date',
-            //     'order' => 'desc',
-            // ]);
+            if ($response->successful()) {
+                $posts = $response->json();
 
-            // if ($response->successful()) {
-            //     $posts = $response->json();
+                if (empty($posts)) {
+                    $this->info("No posts found for {$siteName}");
 
-            //     if (empty($posts)) {
-            //         $this->info("No posts found for {$siteName}");
+                    return;
+                }
 
-            //         return;
-            //     }
+                $latestPost = $posts[0];
+                $latestPostId = $latestPost['id'];
 
-            //     $latestPost = $posts[0];
-            //     $latestPostId = $latestPost['id'];
+                if ($latestPostId > $lastPostId) {
+                    // We found a new post!
+                    $newPosts = array_filter($posts, function ($post) use ($lastPostId) {
+                        return $post['id'] > $lastPostId;
+                    });
 
-            //     if ($latestPostId > $lastPostId) {
-            //         // We found a new post!
-            //         $newPosts = array_filter($posts, function ($post) use ($lastPostId) {
-            //             return $post['id'] > $lastPostId;
-            //         });
+                    $this->notifyNewPosts($siteName, $newPosts);
 
-            //         $this->notifyNewPosts($siteName, $newPosts);
-
-            //         // Update the last post ID
-            //         Storage::put($lastPostIdFile, $latestPostId);
-            //         $this->info("Updated last post ID for {$siteName} to {$latestPostId}");
-            //     } else {
-            //         $this->info("No new posts for {$siteName}");
-            //     }
-            // } else {
-            //     $this->error("Failed to fetch posts from {$siteName}: ".$response->status());
-            //     Log::error("WordPress API error for {$siteName}: ".$response->body());
-            // }
+                    // Update the last post ID
+                    Storage::put($lastPostIdFile, $latestPostId);
+                    $this->info("Updated last post ID for {$siteName} to {$latestPostId}");
+                } else {
+                    $this->info("No new posts for {$siteName}");
+                }
+            } else {
+                $this->error("Failed to fetch posts from {$siteName}: ".$response->status());
+                Log::error("WordPress API error for {$siteName}: ".$response->body());
+            }
         } catch (\Exception $e) {
             $this->error("Error checking {$siteName}: ".$e->getMessage());
             Log::error("Error checking WordPress site {$siteName}: ".$e->getMessage());
