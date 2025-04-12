@@ -3,7 +3,7 @@
 // config/wordpress.php
 return [
     // Your notification email
-    'notification_email' => env('NOTIFICATION_EMAIL', 'danesh-dev07@example.com'),
+    'notification_email' => env('NOTIFICATION_EMAIL', 'danesh.dev07@example.com'),
 
     // Websites to monitor
     'websites' => [

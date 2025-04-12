@@ -57,6 +57,7 @@ class CheckWordpressPosts extends Command
 
             // Comment out or remove the rest of the function for testing
             return;
+
             // Get last checked post ID from storage
             $lastPostIdFile = "last_post_{$siteName}.txt";
             $lastPostId = Storage::exists($lastPostIdFile)
