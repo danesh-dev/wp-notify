@@ -30,7 +30,7 @@ jobs:
     - name: Generate key
       run: php artisan key:generate
 
-      - name: Configure Mail
+    - name: Configure Mail
       env:
         MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
         MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
