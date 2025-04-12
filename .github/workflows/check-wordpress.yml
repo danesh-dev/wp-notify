@@ -30,19 +30,19 @@ jobs:
     - name: Generate key
       run: php artisan key:generate
 
-    - name: Configure Mail
+      - name: Configure Mail
       env:
         MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
         MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
       run: |
-        sed -i "s/MAIL_MAILER=.*/MAIL_MAILER=smtp/" .env
-        sed -i "s/MAIL_HOST=.*/MAIL_HOST=smtp.gmail.com/" .env
-        sed -i "s/MAIL_PORT=.*/MAIL_PORT=587/" .env
-        sed -i "s/MAIL_USERNAME=.*/MAIL_USERNAME=$MAIL_USERNAME/" .env
-        sed -i "s/MAIL_PASSWORD=.*/MAIL_PASSWORD=$MAIL_PASSWORD/" .env
-        sed -i "s/MAIL_ENCRYPTION=.*/MAIL_ENCRYPTION=tls/" .env
-        echo "NOTIFICATION_EMAIL=$NOTIFICATION_EMAIL" >> .env
+        sed -i "s|MAIL_MAILER=.*|MAIL_MAILER=\"smtp\"|" .env
+        sed -i "s|MAIL_HOST=.*|MAIL_HOST=\"smtp.gmail.com\"|" .env
+        sed -i "s|MAIL_PORT=.*|MAIL_PORT=\"587\"|" .env
+        sed -i "s|MAIL_USERNAME=.*|MAIL_USERNAME=\"${MAIL_USERNAME}\"|" .env
+        sed -i "s|MAIL_PASSWORD=.*|MAIL_PASSWORD=\"${MAIL_PASSWORD}\"|" .env
+        sed -i "s|MAIL_ENCRYPTION=.*|MAIL_ENCRYPTION=\"tls\"|" .env
+        echo "NOTIFICATION_EMAIL=\"${NOTIFICATION_EMAIL}\"" >> .env
 
     - name: Run WordPress check
       run: php artisan wordpress:check-posts
